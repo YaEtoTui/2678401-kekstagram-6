@@ -1,4 +1,5 @@
 import {showModal, hideModal, isEscapeKey} from './util.js';
+import {resetImageForm} from './reset-form.js';
 
 const MAX_HASHTAG_COUNT = 5;
 const VALID_SYMBOLS = /^#[a-zа-яё0-9]{1,19}$/i;
@@ -6,8 +7,8 @@ const MAX_COMMENT_LENGTH = 140;
 const ErrorText = {
   COMMENT_LENGTH_ERROR: `Длина комментария больше ${MAX_COMMENT_LENGTH} символов`,
   INVALID_COUNT: `Максимум ${MAX_HASHTAG_COUNT} хэштегов`,
-  NOT_UNIQUE: `Хэштеги должны быть уникальными`,
-  INVALID_PATTERN: `Неправильный хэштег`
+  NOT_UNIQUE: 'Хэштеги должны быть уникальными',
+  INVALID_PATTERN: 'Неправильный хэштег'
 };
 
 const form = document.querySelector('.img-upload__form');
@@ -34,7 +35,7 @@ const hasValidTags = (value) => {
   const hashtagsArray = value.split(' ');
   const hashTagsRegularityCheck = hashtagsArray.some((hashtag) => !VALID_SYMBOLS.test(hashtag));
   return !hashTagsRegularityCheck;
-}
+};
 
 const hasValidCount = (value) => normalizeTags(value).length <= MAX_HASHTAG_COUNT;
 
@@ -52,6 +53,7 @@ const onImageUploadOverlayKeyDown = (evt) => {
   if (isEscapeKey(evt) && commentField !== document.activeElement && hashtagField !== document.activeElement) {
     evt.preventDefault();
     hideImageUploadOverlay();
+    resetImageForm(form, pristine);
   }
 };
 
@@ -59,19 +61,12 @@ const showImageUploadOverlay = () => {
   showModal(overlay, onImageUploadOverlayKeyDown);
 };
 
+resetImageForm(form, pristine);
+
 function hideImageUploadOverlay() {
   hideModal(overlay, onImageUploadOverlayKeyDown);
+  resetImageForm(form, pristine);
 }
-
-form.addEventListener('submit', (evt) => {
-  const isValid = pristine.validate();
-
-  if (!isValid) {
-    evt.preventDefault();
-  }
-
-  hideImageUploadOverlay();
-});
 
 imageUploadInput.addEventListener('change', () => {
   showImageUploadOverlay();
@@ -79,4 +74,16 @@ imageUploadInput.addEventListener('change', () => {
 
 cancelButton.addEventListener('click', () => {
   hideImageUploadOverlay();
+  resetImageForm(form, pristine);
+});
+
+form.addEventListener('submit', (evt) => {
+  evt.preventDefault();
+
+  const isValid = pristine.validate();
+
+  if (isValid) {
+    resetImageForm(form, pristine);
+    hideImageUploadOverlay();
+  }
 });
