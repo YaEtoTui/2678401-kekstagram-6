@@ -1,105 +1,35 @@
-import {nameList, messageList} from './data.js';
-import {generateCommentId, findRandomInteger, countComments, countPhotos} from './util.js';
-import {renderBigPicture} from './big-picture.js';
+const picturesContainer = document.querySelector('.pictures');
+const pictureTemplate = document.querySelector('#picture').content;
+const pictureLink = pictureTemplate.querySelector('.picture');
+const imagesFragment = document.createDocumentFragment();
 
-/**
- * Генерируем комментарий
- * @returns {Array<
- *    id: number,
- *    avatar: string,
- *    message: string,
- *    name: string
- *  >}
- */
-const generateComment = function () {
-  return {
-    id: generateCommentId(1, countComments),
-    avatar: `img/avatar-${findRandomInteger(1, 6)}.svg`,
-    name: nameList[findRandomInteger(0, nameList.length - 1)],
-    message: Array.from(
-      {length: findRandomInteger(1, 2)},
-      () => messageList[findRandomInteger(0, messageList.length - 1)]
-    ).join(' '),
-  };
-};
+const createImage = (picture, pictureClickHandler) => {
 
-/**
- * Функция для генерации массива фотографий
- * @returns {Array<{
- *  id: number,
- *  url: string,
- *  description: string,
- *  likes: number,
- *  comments: Array<{
- *    id: number,
- *    avatar: string,
- *    message: string,
- *    name: string
- *  }>
- *  }>}
- */
-export const generatePhotoList = function () {
+  const pictureElement = pictureLink.cloneNode(true);
 
-  const photoList = [];
-  for (let i = 1; i <= countPhotos; i++) {
-    const commentCount = findRandomInteger(0, 30);
-    const commentList = Array.from(
-      {length: commentCount},
-      () => generateComment()
-    );
+  const img = pictureElement.querySelector('.picture__img');
+  img.src = picture.url;
+  img.alt = picture.description;
 
-    const photo = {
-      id: i,
-      url: `photos/${i}.jpg`,
-      description: `Фотография ${i}`,
-      likes: findRandomInteger(15, 200),
-      comments: commentList,
-    };
+  const likesElement = pictureElement.querySelector('.picture__likes');
+  likesElement.textContent = picture.likes;
 
-    photoList.push(photo);
-  }
+  const commentsElement = pictureElement.querySelector('.picture__comments');
+  commentsElement.textContent = picture.comments.length;
 
-  return photoList;
-};
-
-
-const addPictureClickHandler = function (pictureElement, picture) {
-  pictureElement.addEventListener('click', (evt) => {
-    evt.preventDefault();
-    renderBigPicture(picture);
+  pictureElement.addEventListener('click', () => {
+    pictureClickHandler(picture);
   });
+
+  return pictureElement;
 };
 
-const renderPictures = function (picturesData) {
-
-  const picturesContainer = document.querySelector('.pictures');
-  const pictureTemplate = document.querySelector('#picture')
-    .content
-    .querySelector('.picture');
-
-  // Создаём DocumentFragment для оптимизации вставки
-  const fragment = document.createDocumentFragment();
+export const renderPictures = function (picturesData, pictureClickHandler) {
 
   picturesData.forEach((picture) => {
-    // Клонируем шаблон с дочерними элементами
-    const pictureElement = pictureTemplate.cloneNode(true);
-
-    const img = pictureElement.querySelector('.picture__img');
-    img.src = picture.url;
-    img.alt = picture.description;
-
-    const likesElement = pictureElement.querySelector('.picture__likes');
-    likesElement.textContent = picture.likes;
-
-    const commentsElement = pictureElement.querySelector('.picture__comments');
-    commentsElement.textContent = picture.comments.length;
-
-    addPictureClickHandler(pictureElement, picture);
-    fragment.appendChild(pictureElement);
+    const pictureElement = createImage(picture, pictureClickHandler);
+    imagesFragment.append(pictureElement);
   });
 
-  picturesContainer.appendChild(fragment);
+  picturesContainer.append(imagesFragment);
 };
-
-const photoList = generatePhotoList();
-renderPictures(photoList);
