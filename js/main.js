@@ -1,13 +1,14 @@
 import './functions.js';
-import {photoList} from './data.js';
+import {getData} from './api.js';
 import {renderPictures} from './pictures.js';
-import {renderBigPicture} from './big-picture.js';
+import {showImageModal} from './big-picture.js';
 import './form.js';
 import './scale.js';
 import './effects.js';
 
-const pictureClickHandler = (photosData) => {
-  renderBigPicture(photosData);
+const onPhotoClick = (photosData) => {
+  showImageModal(photosData);
 };
 
-renderPictures(photoList, pictureClickHandler);
+getData()
+  .then((pictures) => renderPictures(pictures, onPhotoClick));

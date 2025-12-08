@@ -3,7 +3,7 @@ const pictureTemplate = document.querySelector('#picture').content;
 const pictureLink = pictureTemplate.querySelector('.picture');
 const imagesFragment = document.createDocumentFragment();
 
-const createImage = (picture, pictureClickHandler) => {
+const createImage = (picture, onPhotoClick) => {
 
   const pictureElement = pictureLink.cloneNode(true);
 
@@ -18,16 +18,16 @@ const createImage = (picture, pictureClickHandler) => {
   commentsElement.textContent = picture.comments.length;
 
   pictureElement.addEventListener('click', () => {
-    pictureClickHandler(picture);
+    onPhotoClick(picture);
   });
 
   return pictureElement;
 };
 
-export const renderPictures = function (picturesData, pictureClickHandler) {
+export const renderPictures = function (picturesData, onPhotoClick) {
 
   picturesData.forEach((picture) => {
-    const pictureElement = createImage(picture, pictureClickHandler);
+    const pictureElement = createImage(picture, onPhotoClick);
     imagesFragment.append(pictureElement);
   });
 
