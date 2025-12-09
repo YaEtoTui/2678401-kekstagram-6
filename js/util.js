@@ -21,7 +21,6 @@ export const sortRandomArray = (array) => {
   return array;
 };
 
-
 export const debounce = (callback, timeoutDelay = 500) => {
   let timeoutId;
 
