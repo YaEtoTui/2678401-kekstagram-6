@@ -1,19 +1,19 @@
-import {showModal, hideModal, isEscapeKey} from './util.js';
+import {isEscapeKey, showModal, hideModal} from './util.js';
 import {resetImageForm} from './reset-form.js';
 import {sendData} from './api.js';
 import {showErrorMessage, showSuccessMessage} from './modal-status.js';
 import {imageElement} from './scale.js';
 
-const MAX_HASHTAG_COUNT = 5;
-const VALID_SYMBOLS = /^#[a-zа-яё0-9]{1,19}$/i;
 const MAX_COMMENT_LENGTH = 140;
-const ErrorText = {
+const HASHTAG_REGULAR = /^#[a-zа-яё0-9]{1,19}$/i;
+const MAX_HASHTAGS_NUMBER = 5;
+const FILE_TYPES = ['jpg', 'jpeg', 'png'];
+const ErrorMessageType = {
   COMMENT_LENGTH_ERROR: `Длина комментария больше ${MAX_COMMENT_LENGTH} символов`,
-  INVALID_COUNT: `Максимум ${MAX_HASHTAG_COUNT} хэштегов`,
-  NOT_UNIQUE: 'Хэштеги должны быть уникальными',
-  INVALID_PATTERN: 'Неправильный хэштег'
+  HASHTAGS_INVALID_PATTERN_ERROR: 'Введен невалидный хэштег',
+  HASHTAGS_NUMBER_ERROR: 'Превышено количество хэштегов',
+  HASHTAGS_REPEAT_ERROR: 'Хэштеги повторяются'
 };
-const FILE_TYPES = ['png', 'jpg', 'jpeg'];
 
 const form = document.querySelector('.img-upload__form');
 const overlay = document.querySelector('.img-upload__overlay');
@@ -29,31 +29,6 @@ const pristine = new Pristine(form, {
   errorTextParent: 'img-upload__field-wrapper'
 });
 
-const normalizeTags = (tagString) => tagString
-  .trim()
-  .replace(/\s+/g, ' ')
-  .split(' ');
-
-const validateComment = (value) => value.length < MAX_COMMENT_LENGTH;
-
-const hasValidTags = (value) => {
-  const hashtagsArray = value.split(' ');
-  const hashTagsRegularityCheck = hashtagsArray.some((hashtag) => !VALID_SYMBOLS.test(hashtag));
-  return !hashTagsRegularityCheck;
-};
-
-const hasValidCount = (value) => normalizeTags(value).length <= MAX_HASHTAG_COUNT;
-
-const hasUniqueTags = (value) => {
-  const lowerCaseTags = normalizeTags(value).map((tag) => tag.toLowerCase());
-  return lowerCaseTags.length === new Set(lowerCaseTags).size;
-};
-
-pristine.addValidator(commentField, validateComment, ErrorText.COMMENT_LENGTH_ERROR);
-pristine.addValidator(hashtagField, hasValidCount, ErrorText.INVALID_COUNT);
-pristine.addValidator(hashtagField, hasUniqueTags, ErrorText.NOT_UNIQUE);
-pristine.addValidator(hashtagField, hasValidTags, ErrorText.INVALID_PATTERN);
-
 const onImageUploadOverlayKeyDown = (evt) => {
   if (isEscapeKey(evt) && commentField !== document.activeElement && hashtagField !== document.activeElement) {
     evt.preventDefault();
@@ -62,15 +37,14 @@ const onImageUploadOverlayKeyDown = (evt) => {
   }
 };
 
+resetImageForm(form, pristine);
+
 const showImageUploadOverlay = () => {
   showModal(overlay, onImageUploadOverlayKeyDown);
 };
 
-resetImageForm(form, pristine);
-
 function hideImageUploadOverlay() {
   hideModal(overlay, onImageUploadOverlayKeyDown);
-  resetImageForm(form, pristine);
 }
 
 imageUploadInput.addEventListener('change', () => {
@@ -93,6 +67,34 @@ cancelButton.addEventListener('click', () => {
   hideImageUploadOverlay();
   resetImageForm(form, pristine);
 });
+
+const normalizeTags = (value) => value.toLowerCase()
+  .trim()
+  .replace(/\s+/g, ' ')
+  .split(' ');
+
+const validateComment = (value) => value.length < MAX_COMMENT_LENGTH;
+
+const hasValidTags = (value) => {
+  const hashtags = normalizeTags(value);
+  const hashTagsRegularityCheck = hashtags.some((hashtag) => !HASHTAG_REGULAR.test(hashtag));
+  return !hashTagsRegularityCheck || value === '';
+};
+
+const hasValidCount = (value) => {
+  const hashtags = normalizeTags(value);
+  return hashtags.length <= MAX_HASHTAGS_NUMBER;
+};
+
+const hasUniqueTags = (value) => {
+  const hashtags = normalizeTags(value);
+  return new Set(hashtags).size === hashtags.length;
+};
+
+pristine.addValidator(commentField, validateComment, ErrorMessageType.COMMENT_LENGTH_ERROR);
+pristine.addValidator(hashtagField, hasValidTags, ErrorMessageType.HASHTAGS_INVALID_PATTERN_ERROR);
+pristine.addValidator(hashtagField, hasValidCount, ErrorMessageType.HASHTAGS_NUMBER_ERROR);
+pristine.addValidator(hashtagField, hasUniqueTags, ErrorMessageType.HASHTAGS_REPEAT_ERROR);
 
 form.addEventListener('submit', (evt) => {
   evt.preventDefault();
