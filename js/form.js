@@ -1,5 +1,8 @@
 import {showModal, hideModal, isEscapeKey} from './util.js';
 import {resetImageForm} from './reset-form.js';
+import {sendData} from './api.js';
+import {showErrorMessage, showSuccessMessage} from './modal-status.js';
+import {imageElement} from './scale.js';
 
 const MAX_HASHTAG_COUNT = 5;
 const VALID_SYMBOLS = /^#[a-zа-яё0-9]{1,19}$/i;
@@ -10,18 +13,20 @@ const ErrorText = {
   NOT_UNIQUE: 'Хэштеги должны быть уникальными',
   INVALID_PATTERN: 'Неправильный хэштег'
 };
+const FILE_TYPES = ['png', 'jpg', 'jpeg'];
 
 const form = document.querySelector('.img-upload__form');
 const overlay = document.querySelector('.img-upload__overlay');
 const cancelButton = document.querySelector('.img-upload__cancel');
 const imageUploadInput = document.querySelector('.img-upload__input');
+const imageUploadSubmit = document.querySelector('.img-upload__submit');
 const hashtagField = document.querySelector('.text__hashtags');
 const commentField = document.querySelector('.text__description');
+const effectsPreviews = document.querySelectorAll('.effects__preview');
 
 const pristine = new Pristine(form, {
-  classTO: 'img-upload__field-wrapper',
-  errorTextParent: 'img-upload__field-wrapper',
-  errorTextClass: 'img-upload__field-wrapper--error'
+  classTo: 'img-upload__field-wrapper',
+  errorTextParent: 'img-upload__field-wrapper'
 });
 
 const normalizeTags = (tagString) => tagString
@@ -70,6 +75,18 @@ function hideImageUploadOverlay() {
 
 imageUploadInput.addEventListener('change', () => {
   showImageUploadOverlay();
+
+  const file = imageUploadInput.files[0];
+  const fileUrl = URL.createObjectURL(file);
+  const fileName = file.name.toLowerCase();
+  const isMatches = FILE_TYPES.some((it) => fileName.endsWith(it));
+
+  if (isMatches) {
+    imageElement.src = fileUrl;
+    effectsPreviews.forEach((effectsPreview) => {
+      effectsPreview.style.backgroundImage = `url("${fileUrl}")`;
+    });
+  }
 });
 
 cancelButton.addEventListener('click', () => {
@@ -83,7 +100,18 @@ form.addEventListener('submit', (evt) => {
   const isValid = pristine.validate();
 
   if (isValid) {
-    resetImageForm(form, pristine);
-    hideImageUploadOverlay();
+    imageUploadSubmit.disabled = true;
+    sendData(new FormData(evt.target))
+      .then(() => {
+        showSuccessMessage();
+        resetImageForm(form, pristine);
+      })
+      .catch(() => {
+        showErrorMessage(showImageUploadOverlay);
+      })
+      .finally(() => {
+        hideImageUploadOverlay();
+        imageUploadSubmit.disabled = false;
+      });
   }
 });
