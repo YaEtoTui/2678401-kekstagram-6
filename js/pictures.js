@@ -25,6 +25,11 @@ const createImage = (picture, onPhotoClick) => {
 };
 
 export const renderPictures = function (picturesData, onPhotoClick) {
+  let photo = picturesContainer.querySelector('.picture');
+  while (photo) {
+    photo.remove();
+    photo = picturesContainer.querySelector('.picture');
+  }
 
   picturesData.forEach((picture) => {
     const pictureElement = createImage(picture, onPhotoClick);
