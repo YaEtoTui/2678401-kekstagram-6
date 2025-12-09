@@ -1,11 +1,15 @@
 import {isEscapeKey} from './util.js';
 
+const DATA_ERROR_TIMEOUT = 5000;
+
 const successTemplate = document.querySelector('#success');
 const successMessage = successTemplate.content.querySelector('.success');
 const successButton = successTemplate.content.querySelector('.success__button');
 const errorTemplate = document.querySelector('#error');
 const errorMessage = errorTemplate.content.querySelector('.error');
 const errorButton = errorTemplate.content.querySelector('.error__button');
+const dataErrorTemplate = document.querySelector('#data-error');
+const dataErrorMessage = dataErrorTemplate.content.querySelector('.data-error');
 
 const onMessageKeyDown = (currentElement, onClose) => (evt) => {
   if (isEscapeKey(evt)) {
@@ -54,6 +58,14 @@ const showErrorMessage = (onClose) => {
   errorButton.addEventListener('click', () => {
     hideMessage(errorMessage, onClose);
   });
+};
+
+export const openError = () => {
+  document.body.append(dataErrorMessage);
+
+  setTimeout(() => {
+    dataErrorMessage.remove();
+  }, DATA_ERROR_TIMEOUT);
 };
 
 export {showSuccessMessage, showErrorMessage};

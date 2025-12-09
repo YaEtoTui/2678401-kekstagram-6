@@ -7,6 +7,7 @@ import './scale.js';
 import './effects.js';
 import {imgFilters} from './filters.js';
 import {sortImgList} from './img-sort.js';
+import {openError} from './modal-status.js';
 
 const onPhotoClick = (photosData) => {
   showImageModal(photosData);
@@ -17,4 +18,7 @@ getData()
     renderPictures(pictures, onPhotoClick);
     sortImgList(pictures, onPhotoClick);
     imgFilters.classList.remove('img-filters--inactive');
+  })
+  .catch(() => {
+    openError();
   });
