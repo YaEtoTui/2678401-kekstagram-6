@@ -79,9 +79,9 @@ imageUploadInput.addEventListener('change', () => {
   const file = imageUploadInput.files[0];
   const fileUrl = URL.createObjectURL(file);
   const fileName = file.name.toLowerCase();
-  const isMatches = FILE_TYPES.some((it) => fileName.endsWith(it));
+  const matches = FILE_TYPES.some((it) => fileName.endsWith(it));
 
-  if (isMatches) {
+  if (matches) {
     imageElement.src = fileUrl;
     effectsPreviews.forEach((effectsPreview) => {
       effectsPreview.style.backgroundImage = `url("${fileUrl}")`;
